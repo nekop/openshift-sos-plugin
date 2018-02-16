@@ -42,6 +42,15 @@ for pod in $PODS; do
 done
 kill $WATCH_PID
 
+# if we can access to non-namespaced objects, get additional info
+if [ "$(oc policy can-i get nodes 2>/dev/null)" == "yes" ]; then
+  oc get node -o wide &> $DEST/oc-get-node.txt
+  oc get node -o ${KUBECTL_PLUGINS_LOCAL_FLAG_OUTPUT} &> $DEST/oc-get-node.${KUBECTL_PLUGINS_LOCAL_FLAG_OUTPUT}
+  oc describe node &> $DEST/oc-describe-node.txt
+  oc get hostsubnet &> $DEST/oc-get-hostsubnet.txt
+  oc get clusterrolebindings &> $DEST/oc-get-clusterrolebindings.txt
+fi
+
 # compress
 DEST_FILE=/tmp/oc-sos-${KUBECTL_PLUGINS_CURRENT_NAMESPACE}-$(date +%Y%m%d-%H%M%S).tar.xz
 tar caf $DEST_FILE -C $TMP_DIR $KUBECTL_PLUGINS_CURRENT_NAMESPACE
