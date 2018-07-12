@@ -62,6 +62,15 @@ if [ $KUBECTL_PLUGINS_CURRENT_NAMESPACE == "openshift-infra" ]; then
   done
 fi
 
+# glusterfs
+if [ $KUBECTL_PLUGINS_CURRENT_NAMESPACE == "glusterfs" ]; then
+  HEKETI_POD=$($OC_CMD get pod --show-all=false -l deploymentconfig=heketi-storage -o name | sed -e 's|pods/||')
+  if [ -n $HEKETI_POD ]; then
+    HEKETI_ADMIN_SECRET=$($OC_CMD get secret heketi-storage-admin-secret --template='{{index .data "key"}}' | base64 -d)
+    $OC_CMD exec $HEKETI_POD -- heketi-cli volume list --user admin --secret $HEKETI_ADMIN_SECRET &> heketi-cli-volume-list.txt
+  fi
+fi
+
 # cluster-admin level objects
 if [ "$KUBECTL_PLUGINS_LOCAL_FLAG_INCLUDE_ADMIN" == "true" ]; then
   if [ "$(oc auth can-i get pods -n default)" == "yes" ]; then
